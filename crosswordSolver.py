@@ -22,10 +22,15 @@ import argparse
 import json
 import sys
 from typing import Dict, List, Tuple
-
 import constraint
+from wordlist_loader import filter_words_from_json, save_filtered_words
 
 N = 5  # board size (5×5)
+
+"""filtered = filter_words_from_json("words_dictionary.json", min_length=4, max_length=7)"""""
+
+# Optional: Save to file
+"""save_filtered_words(filtered, "filtered_words.txt")"""
 
 #slot represents one full row or column that must be filled with a single 5-letter word
 class Slot:
@@ -75,6 +80,8 @@ def build_problem(grid: List[str], words: List[str], unique: bool):
 
         pattern = grid[idx] if rc == 'R' else ''.join(grid[r][idx] for r in range(N))
         # check if there is a prefill
+        #it does this by checking if a word in the dictionary fits the exact same index and elements as the word in the pattern
+        #if it does then it 
         domain = dictionary if pattern == '.' * N else [w for w in dictionary if all(p == '.' or p == w[i] for i, p in enumerate(pattern))]
         #if there's no prefill, all words in dictionary will be in the domain
         problem.addVariable(slot.id, domain)
@@ -85,10 +92,11 @@ def build_problem(grid: List[str], words: List[str], unique: bool):
         for i, cell in enumerate(slot.cells):
             cell_map.setdefault(cell, []).append((slot.id, i))
 
-    for (s1, i1), (s2, i2) in cell_map.values():
+    for overlaps in cell_map.values():
+     if len(overlaps) == 2:
+        (s1, i1), (s2, i2) = overlaps
         def same(a, b, i=i1, j=i2):
             return a[i] == b[j]
-        #each variable in the same slot has to have the same character
         problem.addConstraint(same, (s1, s2))
 
     if unique:
@@ -114,7 +122,6 @@ def parse_args():
     ap.add_argument('--unique', action='store_true', help='Enforce all 10 words distinct')
     return ap.parse_args()
 
-
 def main():
     args = parse_args()
 
@@ -136,3 +143,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+
+
