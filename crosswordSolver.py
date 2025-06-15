@@ -17,7 +17,6 @@ Usage:
 }
 `.` means an empty cell、prefill has to be lower case.
 """
-
 import argparse
 import json
 import sys
